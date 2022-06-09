@@ -1,6 +1,10 @@
 import {useState, useEffect} from "react"
-import {FaUser} from "react-icons/fa"
-
+import { useSelector, useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { FaUser } from 'react-icons/fa'
+import { register, reset } from '../features/auth/authSlice'
+import Spinner from "../components/Spinner"
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -12,6 +16,27 @@ const Register = () => {
     
     const {name, email, password, password2} = formData;
     
+    const navigate = useNavigate()
+    const dispatch = useDispatch()
+    
+      const { user, isLoading, isError, isSuccess, message } = useSelector(
+    (state) => state.auth
+  )
+      
+      useEffect(() => {
+       if (isError) {
+          toast.error(message)
+       }
+
+       if (isSuccess || user) {
+          navigate('/')
+       }
+          
+       dispatch(reset())
+          
+      }, [user, isError, isSuccess, message, navigate, dispatch])
+    
+    
     //Don't really understand this
     const onChange = (e) => {
         setFormData((prevState) => ({
@@ -22,6 +47,22 @@ const Register = () => {
     
     const onSubmit = (e) => {
         e.preventDefault()
+        if(password !== password2) {
+            toast.error("password do not match")
+        } else {
+            const userData = {
+                name,
+                email,
+                password
+            }
+            
+            
+            dispatch(register(userData))
+        }
+    }
+    
+    if(isLoading) {
+        return <Spinner />
     }
     
     return (
@@ -47,10 +88,10 @@ const Register = () => {
                  <div className="form-group">
                     <input type="password" className="form-control" id="password2" name="password2" value={password2} placeholder="Comfirm password" onChange={onChange}/>
                  </div>
-            </form>
-               <div className="form-group">
+                 <div className="form-group">
                     <input type="submit" className="btn btn-block" />
                  </div>
+            </form>
           </section>
         </>
     )
